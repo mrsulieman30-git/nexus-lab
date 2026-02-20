@@ -107,6 +107,9 @@ class ItemController extends Controller
         try {
             DB::transaction(function () use ($request, $item) {
 
+                // Declare perBaseCost at the beginning of the transaction so it is always defined
+                $perBaseCost = null;
+
                 // Convert requested quantity based on packaging level into the model's base unit
                 // Base unit mapping:
                 // - packaging_type 'box' or 'kit' -> base unit is 'kit' (quantity stored in kits)
@@ -143,7 +146,7 @@ class ItemController extends Controller
 
                     // Update Item Cost: store cost as price PER PACKAGING UNIT (box, kit, reagent/bottle)
                     // But record per-base-unit cost in transactions for accounting.
-                    $perBaseCost = null;
+
                     if ($request->cost_per_unit !== null && $request->cost_per_unit >= 0) {
                         $pkg = $request->package_level;
 

@@ -67,6 +67,14 @@
                     </div>
 
                     <form @submit.prevent="submit" class="space-y-5">
+
+                        <div v-if="Object.keys(form.errors).length > 0" class="bg-red-500/10 border border-red-500/30 p-4 rounded-xl">
+                            <p class="text-red-400 text-sm font-bold mb-2">Please fix the following errors:</p>
+                            <ul class="list-disc list-inside text-red-300 text-xs space-y-1">
+                                <li v-for="(error, field) in form.errors" :key="field">{{ error }}</li>
+                            </ul>
+                        </div>
+
                         <div>
                             <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Quantity {{ form.type === 'in' ? 'Received' : 'Used' }}</label>
                             <div class="relative mt-1">
@@ -76,8 +84,7 @@
 
                             <div class="mt-3">
                                 <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">{{ form.type === 'in' ? 'Packaging Level' : 'Deduction Unit' }}</label>
-                                <select v-model="form.package_level" :disabled="form.type === 'out'" class="w-40 mt-1 glass-input">
-                                    <!-- Enforce the three packaging types and map to base-units -->
+                                <select v-model="form.package_level" :disabled="form.type === 'out'" class="w-full mt-1 glass-input">
                                     <option value="box">Box (contains kits)</option>
                                     <option value="kit">Kit</option>
                                     <option value="reagent">Reagent (bottle)</option>
@@ -97,7 +104,7 @@
                                     <input v-model="form.expiry_date" type="date" class="w-full glass-input mt-1 [color-scheme:dark]" />
                                 </div>
                                 <div>
-                                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Cost Per {{ form.package_level.charAt(0).toUpperCase() + form.package_level.slice(1) }}</label>
+                                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Cost Per {{ form.package_level ? form.package_level.charAt(0).toUpperCase() + form.package_level.slice(1) : 'Unit' }}</label>
                                     <div class="relative mt-1">
                                         <span class="absolute left-3 top-2.5 text-gray-500">$</span>
                                         <input v-model="form.cost_per_unit" type="number" step="0.01" class="w-full glass-input pl-7" />
@@ -144,8 +151,6 @@ const props = defineProps({
 
 const emit = defineEmits(['close']);
 
-// --- Refs ---
-// NOTE: We use .value to modify these in the script to avoid "Assignment to constant variable" errors
 const loadingCheck = ref(false);
 const pendingOrders = ref([]);
 const selectedOrder = ref(null);
@@ -158,85 +163,69 @@ const form = useForm({
     lot_number: '',
     expiry_date: '',
     cost_per_unit: '',
-    po_id: null
-    ,package_level: 'kit'
+    po_id: null,
+    package_level: 'kit'
 });
 
-// --- Watcher: When Modal Opens ---
+// --- Watcher: Added { immediate: true } to trigger on mount ---
 watch(() => props.show, async (isOpen) => {
-            if (isOpen && props.item) {
-        // 1. Reset Form
+    if (isOpen && props.item) {
         form.reset();
+        form.clearErrors();
         form.type = props.type;
         form.cost_per_unit = props.item.cost_per_unit;
 
-        // 2. Reset Logic State (Using .value)
         pendingOrders.value = [];
         selectedOrder.value = null;
         workflowComplete.value = false;
 
-        // 3. Logic: If adding stock ('in'), check for pending orders
         if (props.type === 'in') {
             loadingCheck.value = true;
             try {
                 const res = await axios.get(route('purchase-orders.check'), { params: { item_id: props.item.id } });
                 pendingOrders.value = res.data.orders;
 
-                // If no orders found, skip interceptor and go straight to form
                 if (pendingOrders.value.length === 0) {
                     workflowComplete.value = true;
                     form.notes = 'Direct Stock Entry';
                 }
             } catch (error) {
                 console.error("Error checking POs:", error);
-                workflowComplete.value = true; // Fallback to form on error
+                workflowComplete.value = true;
             } finally {
                 loadingCheck.value = false;
             }
 
-                // Auto-set package_level based on item's packaging_type so deductions follow inventory logic
-                if (props.item.packaging_type) {
-                    if (props.item.packaging_type === 'box') form.package_level = 'box';
-                    else if (props.item.packaging_type === 'kit') form.package_level = 'kit';
-                    else if (props.item.packaging_type === 'reagent') form.package_level = 'reagent';
-                } else {
-                    // fallback: set to kit if unit contains kit, else reagent if bottle
-                    if ((props.item.unit || '').includes('kit')) form.package_level = 'kit';
-                    else if ((props.item.unit || '').includes('bottle')) form.package_level = 'reagent';
-                }
-
-                // If removing stock, lock the package_level to the item's packaging type
-                if (props.type === 'out') {
-                    // deduction should be strictly the inventory unit/package mapping
-                    // ensure the select is disabled (see :disabled binding)
-                }
+            if (props.item.packaging_type) {
+                if (props.item.packaging_type === 'box') form.package_level = 'box';
+                else if (props.item.packaging_type === 'kit') form.package_level = 'kit';
+                else if (props.item.packaging_type === 'reagent') form.package_level = 'reagent';
+            } else {
+                if ((props.item.unit || '').includes('kit')) form.package_level = 'kit';
+                else if ((props.item.unit || '').includes('bottle')) form.package_level = 'reagent';
+            }
 
         } else {
-            // Logic: If removing stock ('out'), just show form
             workflowComplete.value = true;
             form.notes = 'Routine Usage';
         }
     }
-});
-
-// --- Methods ---
+}, { immediate: true });
 
 const selectOrder = (order) => {
     if (order) {
         selectedOrder.value = order;
         form.po_id = order.id;
         form.notes = `Received from PO #${order.po_number}`;
-        // Optional: Auto-fill qty based on remaining amount in PO if you have that data
     } else {
         selectedOrder.value = null;
         form.po_id = null;
         form.notes = 'Direct Purchase';
     }
-    workflowComplete.value = true; // Advance to form
+    workflowComplete.value = true;
 };
 
 const resetWorkflow = () => {
-    // Go back to step 1
     workflowComplete.value = false;
     selectedOrder.value = null;
     form.po_id = null;
@@ -247,10 +236,10 @@ const close = () => {
 };
 
 const submit = () => {
-    // Uses the route 'items.transaction' defined in web.php
+    form.clearErrors();
     form.post(route('items.transaction', props.item.id), {
         onSuccess: () => close(),
-        onError: (err) => console.log(err)
+        onError: (err) => console.log('Transaction Validation Errors:', err)
     });
 };
 </script>
@@ -263,7 +252,6 @@ const submit = () => {
     from { opacity: 0; transform: scale(0.95) translateY(10px); }
     to { opacity: 1; transform: scale(1) translateY(0); }
 }
-/* Custom Scrollbar for list */
 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }

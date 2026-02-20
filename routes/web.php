@@ -48,14 +48,18 @@ use App\Http\Controllers\Auth\PasswordController;
 |--------------------------------------------------------------------------
 */
 
-// Redirect root URL to Login
+// Corrected Root URL to render the Premium Welcome Page
 Route::get('/', function () {
     if (Auth::check()) {
         return redirect()->route('dashboard');
     }
 
-    // Return a simple 200 OK for guests to satisfy tests that expect a 200.
-    return response('Welcome', 200);
+    return Inertia::render('Welcome', [
+        'canLogin' => Route::has('login'),
+        'canRegister' => Route::has('register'),
+        'laravelVersion' => Application::VERSION,
+        'phpVersion' => PHP_VERSION,
+    ]);
 });
 
 // ====================================================
@@ -64,7 +68,7 @@ Route::get('/', function () {
 Route::middleware([
     'auth',
     config('jetstream.auth_session'),
-    'verified', // <--- This requires the verification routes below to exist!
+    'verified',
 ])->group(function () {
 
     // 1. DASHBOARD
@@ -101,15 +105,12 @@ Route::middleware([
     Route::resource('categories', CategoryController::class)->only(['store', 'update', 'destroy']);
     Route::resource('team', TeamController::class)->only(['index', 'store', 'destroy'])->middleware('role:admin,lab_manager,super_admin');
 
-    // 7. PROFILE (Fixed for Jetstream Frontend)
-    // Provide profile edit route (tests expect 'profile.edit') at /profile
+    // 7. PROFILE
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    // Keep legacy /user/profile route for Jetstream compatibility and redirect to canonical path
     Route::get('/user/profile', function () { return redirect()->route('profile.edit'); });
-    Route::put('/user/profile-information', [ProfileController::class, 'update'])->name('user-profile-information.update'); // Jetstream Standard
-    Route::delete('/user/other-browser-sessions', [ProfileController::class, 'destroy'])->name('other-browser-sessions.destroy'); // Placeholder for safety
+    Route::put('/user/profile-information', [ProfileController::class, 'update'])->name('user-profile-information.update');
+    Route::delete('/user/other-browser-sessions', [ProfileController::class, 'destroy'])->name('other-browser-sessions.destroy');
 
-    // Custom Profile Update Logic we wrote
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
@@ -126,7 +127,7 @@ Route::middleware([
 
 
 // ====================================================
-// EMAIL VERIFICATION ROUTES (Required by 'verified' middleware)
+// EMAIL VERIFICATION ROUTES
 // ====================================================
 Route::middleware('auth')->group(function () {
     Route::get('verify-email', EmailVerificationPromptController::class)
@@ -143,7 +144,7 @@ Route::middleware('auth')->group(function () {
 
 
 // ====================================================
-// GUEST ROUTES (Login/Register/Password Reset)
+// GUEST ROUTES
 // ====================================================
 Route::middleware('guest')->group(function () {
 
@@ -151,15 +152,4 @@ Route::middleware('guest')->group(function () {
     Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login');
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
 
-    // Register
-    Route::get('register', [RegisteredUserController::class, 'create'])->name('register');
-    Route::post('register', [RegisteredUserController::class, 'store']);
-
-    // Forgot Password
-    Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
-    Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
-
-    // Reset Password
-    Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
-    Route::post('reset-password', [NewPasswordController::class, 'store'])->name('password.update');
-});
+    });
