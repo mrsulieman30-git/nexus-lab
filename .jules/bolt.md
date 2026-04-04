@@ -1,0 +1,3 @@
+## 2025-04-04 - Avoid Unnecessary `whereHas` by Checking Migrations
+**Learning:** In this codebase, the `item_batches` table stores `laboratory_id` locally (added for easier filtering), but queries were using `ItemBatch::whereHas('item', function($q) use ($labId) { $q->where('laboratory_id', $labId); })`. This creates a costly existential subquery where an O(1) indexed lookup is possible.
+**Action:** Always check migrations or the actual model `$fillable` fields to see if the foreign key needed for scoping is already denormalized to the child table before relying on expensive relational constraints (`whereHas`).
