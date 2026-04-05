@@ -1,0 +1,3 @@
+## 2025-02-14 - Redundant whereHas overhead
+**Learning:** When denormalized/redundant scoping columns (like `laboratory_id`) exist on child tables for easier filtering/security, querying them via `whereHas` on the parent relationship is an anti-pattern. It introduces unnecessary `EXISTS` subqueries and joins, causing significant overhead on high-traffic pages like the dashboard.
+**Action:** Always check the child table's schema (or migrations) to see if the scoping column is available directly before reaching for a relationship query. Use direct `where` clauses on the child table when possible.
