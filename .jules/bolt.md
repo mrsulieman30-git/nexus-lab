@@ -1,0 +1,3 @@
+## 2024-05-18 - [Optimizing Database Queries with Redundant Relationships]
+**Learning:** In the Laravel backend, we found cases where `whereHas` was used to filter on a relationship's property even though the child table already had a foreign key for that property (e.g. `ItemBatch` already contains `laboratory_id`). Using `whereHas` leads to an unnecessary `EXISTS` subquery or JOIN operation which affects database query performance, specifically creating N+1 issues.
+**Action:** When filtering Eloquent models by a related property, check the schema to see if the foreign key exists on the model being queried directly. If it does, use a direct `where` clause instead of `whereHas` to avoid unnecessary relation loading and improve query execution times.
