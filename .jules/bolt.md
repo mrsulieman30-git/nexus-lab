@@ -1,0 +1,3 @@
+## 2026-04-08 - Use denormalized IDs instead of whereHas subqueries
+**Learning:** The `item_batches` table has a `laboratory_id` column that was added specifically to enable easier filtering, but the code still used a `whereHas('item', ...)` query to restrict batches by lab ID. Using `whereHas` generates an expensive `EXISTS` subquery (`EXISTS (SELECT * FROM items WHERE ...)`), which leads to the N+1 problem equivalents as data scales.
+**Action:** Always check if a denormalized relationship ID is already present on the child table (e.g. `laboratory_id` on `item_batches`) before using expensive relational queries like `whereHas`. Use direct indexed columns for maximum speed.
