@@ -113,7 +113,7 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { router } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 const props = defineProps({
     inflows: Object,
@@ -127,8 +127,6 @@ const props = defineProps({
     start: String,
     end: String
 });
-
-import { computed, ref } from 'vue';
 
 const localPeriod = ref(props.period || 'monthly');
 
