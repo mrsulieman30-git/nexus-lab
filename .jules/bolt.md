@@ -1,0 +1,3 @@
+## 2024-04-16 - Replace whereHas with Denormalized Columns
+**Learning:** In Laravel Eloquent, using `whereHas` for relation queries can generate expensive subqueries. In this codebase, the database schema utilizes denormalized columns (e.g., `laboratory_id` on `item_batches`) specifically to optimize query performance and bypass the need for these subqueries.
+**Action:** When filtering related models across a scope like `laboratory_id`, check if a denormalized column already exists on the target model. If so, directly use a `where` clause on the target model rather than a `whereHas` on the relationship to improve query execution times.
