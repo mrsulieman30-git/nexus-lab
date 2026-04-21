@@ -1,0 +1,3 @@
+## 2026-04-21 - Optimize item_batches queries using denormalized laboratory_id
+**Learning:** The `item_batches` table contains a denormalized `laboratory_id` column. Using Eloquent's `whereHas('item', ...)` to filter batches by laboratory is a common anti-pattern in this codebase that generates expensive subqueries.
+**Action:** Always check the database schema for denormalized columns (like `laboratory_id` on `item_batches`) before using `whereHas`. Direct column queries (`where('laboratory_id', $labId)`) are significantly faster and should be preferred for performance optimizations.
