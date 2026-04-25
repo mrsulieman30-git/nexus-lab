@@ -1,0 +1,3 @@
+## 2024-06-03 - N+1 Issue Avoided with Denormalized Schema
+**Learning:** The database schema is intentionally designed with denormalized columns (such as `laboratory_id` on the `item_batches` table). Attempting to resolve relationships through Eloquent's `whereHas` is a performance anti-pattern in this specific application, as the schema design explicitly favors denormalized filtering for multi-tenant isolation and performance.
+**Action:** Always check the database schema (e.g. `sqlite3 database/database.sqlite ".schema table_name"`) for denormalized columns (`laboratory_id` is a prime candidate) before using expensive relationship subqueries like `whereHas`.
