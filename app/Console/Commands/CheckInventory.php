@@ -39,9 +39,8 @@ class CheckInventory extends Command
                 ->get();
 
             // 2. Check Expiring Batches (Next 30 Days)
-            $expiring = ItemBatch::whereHas('item', function($q) use ($lab) {
-                    $q->where('laboratory_id', $lab->id);
-                })
+            // ⚡ Bolt: Using denormalized `laboratory_id` on ItemBatch avoids an expensive `whereHas` subquery against the items table.
+            $expiring = ItemBatch::where('laboratory_id', $lab->id)
                 ->where('quantity', '>', 0) // Only if we have them
                 ->whereDate('expiry_date', '>=', Carbon::now())
                 ->whereDate('expiry_date', '<=', Carbon::now()->addDays(30))
