@@ -1,0 +1,3 @@
+## 2025-02-23 - Leverage Denormalized Columns to Avoid Eloquent whereHas
+**Learning:** Using Eloquent's `whereHas` for checking relationships (like finding `ItemBatch` through `Item`'s `laboratory_id`) is highly inefficient and creates expensive `EXISTS` subqueries, making queries ~3x slower. The application already denormalizes `laboratory_id` onto the `item_batches` table, allowing for direct querying.
+**Action:** Always check the database schema for denormalized columns (like `laboratory_id` on related tables) to optimize queries and avoid expensive subqueries via Eloquent relationships whenever possible.
