@@ -1,0 +1,3 @@
+## 2025-02-14 - Use Denormalized Columns Instead of `whereHas` for Performance
+**Learning:** The database schema heavily uses denormalization specifically to optimize performance. For instance, `laboratory_id` is present directly on tables like `item_batches` and `stock_transactions`, which completely avoids the need to use an expensive `whereHas('item', ...)` nested subquery through Eloquent relationships when filtering by lab context.
+**Action:** Always inspect the target table migrations or schemas for denormalized relationship columns before relying on ORM relation filtering (`whereHas`). In Eloquent, a single indexed column `where` query can be orders of magnitude faster than `whereHas` joins/subqueries.
