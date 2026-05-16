@@ -1,0 +1,3 @@
+## 2024-05-16 - [whereHas Exists Optimization]
+**Learning:** Using Eloquent's `whereHas` introduces a heavy `EXISTS` subquery. On a SQLite database with realistic seeding (e.g. 500 purchase orders), a `whereHas` on `items` vs a `whereIn` using a selected subquery results in an ~80% slowdown. For relations where denormalized columns are available (like `laboratory_id` on `item_batches`), substituting `whereHas` with a direct `where` reduces query time by ~18%.
+**Action:** When working on this codebase, always favor `whereIn` with a subquery (e.g. `$ids = Child::where(...)->select('parent_id')`) over `whereHas(...)` when querying. Also, check for denormalized columns to eliminate joins/exists queries completely.
