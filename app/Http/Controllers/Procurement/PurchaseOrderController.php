@@ -108,10 +108,13 @@ class PurchaseOrderController extends Controller
     {
         $itemId = $request->query('item_id');
 
+        // ⚡ Bolt: Query optimization - whereIn with subquery is significantly faster than whereHas
         $orders = PurchaseOrder::where('laboratory_id', Auth::user()->laboratory_id)
             ->whereIn('status', ['pending', 'ordered'])
-            ->whereHas('items', function($q) use ($itemId) {
-                $q->where('item_id', $itemId)
+            ->whereIn('id', function($q) use ($itemId) {
+                $q->select('purchase_order_id')
+                  ->from('purchase_order_items')
+                  ->where('item_id', $itemId)
                   ->where('is_received', false);
             })
             ->with('supplier')
