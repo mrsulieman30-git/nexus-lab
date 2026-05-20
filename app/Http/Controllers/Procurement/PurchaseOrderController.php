@@ -110,8 +110,11 @@ class PurchaseOrderController extends Controller
 
         $orders = PurchaseOrder::where('laboratory_id', Auth::user()->laboratory_id)
             ->whereIn('status', ['pending', 'ordered'])
-            ->whereHas('items', function($q) use ($itemId) {
-                $q->where('item_id', $itemId)
+            // ⚡ Bolt: Replaced whereHas with whereIn for faster performance (reduces expensive EXISTS subquery)
+            ->whereIn('id', function($q) use ($itemId) {
+                $q->select('purchase_order_id')
+                  ->from('purchase_order_items')
+                  ->where('item_id', $itemId)
                   ->where('is_received', false);
             })
             ->with('supplier')
