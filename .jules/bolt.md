@@ -1,0 +1,3 @@
+## 2026-06-08 - Optimize ItemBatch and PurchaseOrder queries
+**Learning:** The `whereHas` Eloquent method can introduce significant performance bottlenecks, especially when dealing with nested relationships. Using a `whereIn` subquery with a raw query builder closure drops Eloquent features like Global Scopes.
+**Action:** Replace `whereHas` with a `whereIn` subquery using an explicitly defined Eloquent Builder for better performance while retaining ORM features. When possible, leverage denormalized columns (e.g., `laboratory_id`) to directly filter related models instead of relying on `whereHas`.
