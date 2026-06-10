@@ -1,0 +1,3 @@
+## 2026-06-10 - Eloquent whereHas Performance Bottleneck
+**Learning:** In Laravel Eloquent, using `whereHas` to filter related models generates an expensive `EXISTS` subquery, which can be significantly slower than utilizing denormalized columns or `whereIn` with a select subquery. In this codebase, `item_batches` has a denormalized `laboratory_id` to improve performance.
+**Action:** Replace `whereHas` with `whereIn` subqueries using an Eloquent Builder (e.g., `whereIn('item_id', Item::where('laboratory_id', $labId)->select('id'))`) and leverage denormalized columns like `laboratory_id` where available, to avoid performance hits while maintaining ORM features like global scopes.
