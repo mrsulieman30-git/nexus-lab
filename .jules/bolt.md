@@ -1,0 +1,3 @@
+## 2026-06-12 - Replacing whereHas with whereIn
+**Learning:** The `whereHas` method in Eloquent triggers a slow `EXISTS` subquery which significantly degrades database query performance. Using `whereIn` combined with a targeted subquery, particularly leveraging denormalized columns like `laboratory_id`, dramatically improves execution time (up to 10x faster) while maintaining relational integrity constraints.
+**Action:** Opt for `whereIn` subqueries using Eloquent Selects (e.g., `whereIn('item_id', Item::where('laboratory_id', $labId)->select('id'))`) rather than `whereHas` to prevent bottlenecks. Do not use raw DB queries for the subquery to ensure Eloquent features like global scopes and soft deletes are maintained.
