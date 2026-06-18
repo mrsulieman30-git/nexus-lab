@@ -1,0 +1,3 @@
+## 2026-06-18 - [Replace whereHas with whereIn on DashboardController]
+**Learning:** Eloquent's `whereHas` generates an `EXISTS` subquery, which can be slow on large tables. Using a combination of a denormalized column (e.g. `laboratory_id`) and a `whereIn` subquery (`whereIn('item_id', Model::select('id')->where(...))`) is significantly faster while still maintaining Eloquent features like global scopes.
+**Action:** When filtering related models where we only need to check existence, prefer `whereIn` with an Eloquent subquery over `whereHas`, especially if a denormalized column can be leveraged to pre-filter the root table.
