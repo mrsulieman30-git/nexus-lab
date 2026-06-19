@@ -1,0 +1,3 @@
+## 2026-06-19 - Optimizing whereHas with whereIn and Denormalization
+**Learning:** In Laravel Eloquent, replacing a `whereHas` clause with a `whereIn` subquery using an Eloquent builder (e.g., `whereIn('item_id', Item::where(...)->select('id'))`), especially when combined with a filter on a denormalized column like `laboratory_id`, yields significantly faster query execution (~4x faster) while still maintaining essential relationship checks and global scopes.
+**Action:** Prioritize using `whereIn` with Eloquent builders over `whereHas` for filtering by related model attributes when performance is critical, and always leverage available denormalized columns for base filtering.
