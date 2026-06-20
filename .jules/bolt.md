@@ -1,0 +1,3 @@
+## 2024-05-18 - Eloquent whereHas vs whereIn Optimization
+**Learning:** Eloquent `whereHas` generates expensive EXISTS subqueries which degrade performance. Using `whereIn` with a subquery (e.g., `whereIn("item_id", Item::where(...)->select("id"))`) is significantly faster while preserving implicit relation existence checks. Passing an Eloquent Builder instead of a raw closure maintains global scopes and soft deletes.
+**Action:** Prefer `whereIn` over `whereHas` for relationship existence checks, and explicitly apply necessary constraints inside the subquery instead of relying on global scopes which might fail in artisan commands.
