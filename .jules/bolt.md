@@ -1,0 +1,3 @@
+## 2026-06-24 - Optimizing Eloquent Relationships with Subqueries
+**Learning:** Eloquent's `whereHas` generates an `EXISTS` subquery which can be significantly slower than a direct `IN` subquery (`whereIn`) when filtering by relations, particularly when the foreign keys are indexed. The denormalization on related tables helps, but the subquery execution plan difference is large.
+**Action:** Use `whereIn` with an Eloquent Builder subquery instead of `whereHas` when filtering parent models by simple conditions on child models, to improve query performance without sacrificing Eloquent features like global scopes.
