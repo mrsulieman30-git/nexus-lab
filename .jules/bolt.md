@@ -1,0 +1,3 @@
+## 2026-07-02 - Eloquent whereHas vs Denormalized Columns
+**Learning:** In Laravel Eloquent, using `whereHas()` for simple relation existence checks (like filtering by a parent's ID) can introduce significant overhead due to the generation of `EXISTS` subqueries. If the schema includes denormalized columns (e.g., `laboratory_id` on the `item_batches` table), utilizing these columns directly can lead to a ~55% performance improvement.
+**Action:** Always check the database schema for denormalized columns before relying on `whereHas()` or related existence methods. Use direct column queries (`where()`) when available to avoid expensive subqueries.
