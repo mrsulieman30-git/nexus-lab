@@ -1,0 +1,3 @@
+## 2026-07-05 - Eloquent whereHas Performance Bottlenecks
+**Learning:** Eloquent's `whereHas` relies on expensive EXISTS subqueries. In cases where the implicit relationship existence check is important, replacing `whereHas` with a `whereIn` subquery passing a full Eloquent Builder directly (e.g., `whereIn('item_id', Model::where(...)->select('id'))`) significantly improves performance while maintaining implicit checks and Eloquent features like Global Scopes and Soft Deletes.
+**Action:** Profile `whereHas` usages and substitute with Builder-driven `whereIn` subqueries when relationships are known to be bottlenecks, explicitly constraining the inner query to mirror any necessary logic.
