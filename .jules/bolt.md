@@ -1,0 +1,3 @@
+## 2024-05-18 - Eloquent whereHas Performance Bottleneck
+**Learning:** Eloquent's `whereHas` compiles to an `EXISTS` subquery which can be extremely slow on large tables with unoptimized indexes. Replacing it with a `whereIn` subquery using an Eloquent Builder is significantly faster (e.g. dropping query time from 59.4s down to 0.017s) while maintaining relationship existence checks and ORM features like global scopes.
+**Action:** Always prefer `whereIn` with an Eloquent Builder subquery over `whereHas` for performance-critical relation existence checks, especially on the `PurchaseOrder` and `ItemBatch` models.
