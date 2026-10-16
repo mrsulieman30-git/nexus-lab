@@ -1,0 +1,3 @@
+## 2026-10-16 - Replace whereHas with whereIn for Implicit Relation Checks
+**Learning:** In Laravel Eloquent, using `whereHas` generates an expensive `EXISTS` subquery. While relying solely on denormalized columns is faster, it drops the implicit relation existence check. Using `whereIn` with an Eloquent Builder subquery (e.g., `whereIn('item_id', Model::select('id')->where(...))`) is significantly faster than `whereHas` while safely maintaining relation checks and ORM features like Global Scopes.
+**Action:** Always prefer `whereIn` over `whereHas` when filtering by a relation's attributes if the relation existence check must be maintained, and ensure constraints are applied inside the subquery explicitly.
