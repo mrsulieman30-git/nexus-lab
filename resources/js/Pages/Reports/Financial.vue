@@ -128,7 +128,7 @@ const props = defineProps({
     end: String
 });
 
-import { computed, ref } from 'vue';
+import { ref } from "vue";
 
 const localPeriod = ref(props.period || 'monthly');
 
