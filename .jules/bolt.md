@@ -1,0 +1,3 @@
+## 2025-02-23 - Optimizing Eloquent whereHas Performance
+**Learning:** Using `whereHas` in Laravel Eloquent translates to an expensive `EXISTS` subquery in SQL, which can be a bottleneck. Replacing it with a `whereIn` subquery using an Eloquent Builder (e.g., `whereIn('item_id', Item::where('laboratory_id', $labId)->select('id'))`) maintains implicit relation existence checks while executing significantly faster. Combining this with direct queries on denormalized columns (e.g., `laboratory_id` directly on the `ItemBatch` model) yields the best performance.
+**Action:** Replace `whereHas` with `whereIn` subqueries using Eloquent builders when querying relations for performance optimization, ensuring the referenced model class is imported.
