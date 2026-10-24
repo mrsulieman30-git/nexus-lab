@@ -108,12 +108,15 @@ class PurchaseOrderController extends Controller
     {
         $itemId = $request->query('item_id');
 
+        // Optimization: Replace whereHas with whereIn for better query performance.
+        // whereHas executes an EXISTS subquery which is significantly slower than whereIn
+        // for this type of relationship query on SQLite/MySQL.
         $orders = PurchaseOrder::where('laboratory_id', Auth::user()->laboratory_id)
             ->whereIn('status', ['pending', 'ordered'])
-            ->whereHas('items', function($q) use ($itemId) {
-                $q->where('item_id', $itemId)
-                  ->where('is_received', false);
-            })
+            ->whereIn('id', PurchaseOrderItem::select('purchase_order_id')
+                ->where('item_id', $itemId)
+                ->where('is_received', false)
+            )
             ->with('supplier')
             ->get();
 
