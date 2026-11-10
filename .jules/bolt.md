@@ -1,0 +1,3 @@
+## 2025-02-14 - Replace whereHas with whereIn for relation checking
+**Learning:** In Laravel/SQLite, `whereHas` introduces slow `EXISTS` subqueries which can be a performance bottleneck when filtering based on related models. Relying purely on denormalized columns skips the implicit relation existence check (like soft deletes or missing parents).
+**Action:** Replace `whereHas` with a `whereIn` subquery using an Eloquent Builder (`whereIn('id', RelatedModel::where(...)->select('id'))`), explicitly applying necessary constraints like `$labId` since global scopes using `Auth::check()` might fail in Artisan console commands.
